@@ -1,0 +1,194 @@
+﻿@model PdfViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@Model.SkillName Worksheet</title>
+    <style>
+        @@media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            .container {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 15px !important;
+                border: none !important; /* Remove border for better fitting */
+                box-shadow: none !important;
+            }
+
+            .header-container, .worksheet-container, .footer {
+                page-break-inside: avoid; /* Prevent page breaks inside these sections */
+            }
+
+            .question-box {
+                border: 1px solid #000 !important; /* Ensure visibility */
+                page-break-inside: avoid;
+            }
+
+            .btn {
+                display: none !important; /* Hide buttons on print */
+            }
+        }
+
+
+        body {
+            font-family: "Arial", sans-serif;
+            background-color: #f5f7fa;
+            margin: 20px;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            margin: auto;
+            background-color: #fff;
+            padding: 25px;
+            border: 5px solid #4a90e2;
+            border-radius: 20px;
+            box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Header */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #4a90e2;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .left {
+            text-align: left;
+        }
+
+        .right {
+            text-align: right;
+        }
+
+        /* Title */
+        .worksheet-title {
+            text-align: center;
+            font-size: 30px;
+            font-weight: bold;
+            color: #2c3e50;
+            text-transform: uppercase;
+            margin-top: 20px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Question Box */
+        .worksheet-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .question-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 2px solid #4a90e2;
+            padding: 15px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #2c3e50;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Answer Box */
+        .answer-box {
+            height: 40px;
+            border: 2px solid #e74c3c;
+            border-radius: 8px;
+            background-color: white;
+            display: inline-block;
+            text-align: center;
+            font-size: 22px;
+        }
+
+        /* Signature */
+        .signature {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-size: 16px;
+            font-style: italic;
+            margin-top: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header Section -->
+        <div class="header-container">
+            <div class="left">
+                <p>🏫 <strong>School:</strong> @Model.SchoolName</p>
+                <p>📅 <strong>Date:</strong> @Model.ExamDate.ToString("dd/MM/yyyy")</p>
+                <p>👦 <strong>Student Name:</strong> ____________________________</p>
+            </div>
+            <div class="right">
+                <p>📝 <strong>Total Marks:</strong> @Model.TotalMarks</p>
+                <p>🎯 <strong>Obtained Marks:</strong> __________</p>
+            </div>
+        </div>
+
+        <!-- Worksheet Title -->
+        <h2 class="worksheet-title"> @Model.SkillName Worksheet </h2>
+
+        <!-- Questions List -->
+        <div class="worksheet-container">
+            @foreach (var problem in Model.Problems)
+            {
+                var maxDigits = problem.Split(new[] { '+', '-', '*', '/' }, StringSplitOptions.RemoveEmptyEntries)
+                .Max(p => p.Trim().Length); // Get max digit size in problem
+
+                var answerBoxWidth = 60 + (maxDigits * 12); // Adjust width dynamically
+
+                <div class="question-box">
+                    <span>@problem = ________</span>
+                    <div class="answer-box" style="width: @answerBoxWidth px;"></div>
+                </div>
+            }
+        </div>
+
+        <!-- Signature -->
+        <div class="signature">
+            ✍️ <strong>Signature:</strong> ____________________________
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            "Learning is fun when it's colorful and engaging! 😊"
+        </div>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,228 @@
+﻿@{
+    ViewData["Title"] = "Create Worksheet";
+    var skillId = TempData["SkillId"];
+}
+
+<p class="mt-3 fw-bold text-success">Selected Skill ID: @skillId</p>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Worksheet Details</h3>
+                </div>
+                <div class="card shadow-lg border-0 rounded-4">
+                    <div class="card-body p-5">
+                        <h3 class="text-center mb-4 fw-bold text-primary">Create Worksheet</h3>
+
+                        <!-- Grade Dropdown -->
+                        <div class="mb-4">
+                            <label for="GradeID" class="form-label fw-bold">Select Grade</label>
+                            <select id="GradeID" name="GradeID" class="form-control form-select form-select-lg rounded-pill">
+                                <option value="">-- Select Grade --</option>
+                                @foreach (var grade in ViewBag.GradeList)
+                                {
+                                    <option value="@grade.GradeID">@grade.GradeName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Chapter Dropdown -->
+                        <div class="mb-4">
+                            <label for="ChapterID" class="form-label fw-bold">Select Chapter</label>
+                            <select id="ChapterID" name="ChapterID" class="form-control form-select form-select-lg rounded-pill">
+                                <option value="">-- Select Chapter --</option>
+                            </select>
+                        </div>
+
+                        <!-- Skill Dropdown -->
+                        <div class="mb-4">
+                            <label for="SkillID" class="form-label fw-bold">Select Skill</label>
+                            <select id="SkillID" name="SkillID" class="form-control form-select form-select-lg rounded-pill">
+                                <option value="">-- Select Skill --</option>
+                            </select>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <form id="pdfForm" method="post" asp-action="DownloadPdf" asp-controller="Worksheet">
+                            <input type="hidden" name="skillId" value="@skillId" />
+                            <input type="hidden" id="questionCount" name="count" />
+                            <input type="hidden" id="schoolName" name="schoolName">
+                            <input type="hidden" id="totalMarks" name="totalMarks">
+                            <input type="hidden" id="examDate" name="examDate">
+
+                            <div class="d-grid mt-5">
+                                <button type="button" id="downloadBtn" onclick="askQuestionCount()" class="btn btn-primary btn-lg fw-bold rounded-pill shadow-sm">
+                                    <i class="fas fa-file-alt me-2"></i> Create Worksheet
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .swal2-popup {
+        border-radius: 1rem;
+    }
+
+    .swal2-title {
+        color: #0369a1 !important;
+        font-size: 1.5rem !important;
+    }
+
+    .swal2-confirm {
+        background-color: #0ea5e9 !important;
+        padding: 0.75rem 1.5rem !important;
+        border-radius: 0.5rem !important;
+    }
+
+    .swal2-cancel {
+        background-color: #ef4444 !important;
+        padding: 0.75rem 1.5rem !important;
+        border-radius: 0.5rem !important;
+    }
+</style>
+
+<!-- Include jQuery for AJAX -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Include FontAwesome for Icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(document).ready(function () {
+        var storedSkillId = "@TempData["SkillID"]"; // Retrieve SkillID from TempData
+
+        // Load Chapters when Grade changes
+        $("#GradeID").change(function () {
+            var gradeId = $(this).val();
+            $("#ChapterID").html('<option value="">-- Select Chapter --</option>');
+            $("#SkillID").html('<option value="">-- Select Skill --</option>');
+
+            if (gradeId) {
+                $.getJSON("/Worksheet/GetChapters", { gradeId: gradeId }, function (data) {
+                    $.each(data, function (index, item) {
+                        $("#ChapterID").append($('<option>', {
+                            value: item.chapterID,
+                            text: item.chapterName
+                        }));
+                    });
+                });
+            }
+        });
+
+        // Load Skills when Chapter changes
+        $("#ChapterID").change(function () {
+            var gradeId = $("#GradeID").val();
+            var chapterId = $(this).val();
+            $("#SkillID").html('<option value="">-- Select Skill --</option>');
+
+            if (gradeId && chapterId) {
+                $.getJSON("/Worksheet/GetSkills", { gradeId: gradeId, chapterId: chapterId }, function (data) {
+                    $.each(data, function (index, item) {
+                        var option = $('<option>', {
+                            value: item.skillID,
+                            text: item.skillName
+                        });
+
+                        if (storedSkillId && item.skillID == storedSkillId) {
+                            option.attr("selected", "selected"); // Auto-select stored skill
+                        }
+
+                        $("#SkillID").append(option);
+                    });
+                });
+            }
+        });
+    });
+
+    $("#SkillID").change(function () {
+        var skillId = $(this).val();
+        $.post("/Worksheet/StoreSkillId", { skillId: skillId }, function () {
+            console.log("Skill ID stored in TempData:", skillId);
+            location.reload(); // Reload page to reflect the updated TempData
+        });
+    });
+
+    function askQuestionCount() {
+        Swal.fire({
+            title: "<strong>Generate PDF</strong>",
+            icon: "info",
+            html: `
+                    <div class="swal2-form-container">
+                        <div class="swal2-input-group">
+                            <i class="fas fa-question-circle swal2-icon"></i>
+                            <input id="swal-question-count" type="number" min="1" step="1" class="swal2-input" placeholder="Number of Questions">
+                        </div>
+                        <div class="swal2-input-group">
+                            <i class="fas fa-school swal2-icon"></i>
+                            <input id="swal-school-name" type="text" class="swal2-input" placeholder="School Name">
+                        </div>
+                        <div class="swal2-input-group">
+                            <i class="fas fa-star swal2-icon"></i>
+                            <input id="swal-total-marks" type="number" min="1" step="1" class="swal2-input" placeholder="Total Marks">
+                        </div>
+                        <div class="swal2-input-group">
+                            <i class="fas fa-calendar-alt swal2-icon"></i>
+                            <input id="swal-date" type="date" class="swal2-input">
+                        </div>
+                    </div>
+                `,
+            showCancelButton: true,
+            confirmButtonText: "<i class='fas fa-file-pdf'></i> Generate",
+            cancelButtonText: "<i class='fas fa-times'></i> Cancel",
+            confirmButtonColor: "#28a745",
+            cancelButtonColor: "#d33",
+            focusConfirm: false,
+            customClass: {
+                popup: "swal2-custom-popup",
+                title: "swal2-custom-title",
+                htmlContainer: "swal2-custom-html",
+                input: "swal2-custom-input",
+                confirmButton: "swal2-custom-confirm-button",
+                cancelButton: "swal2-custom-cancel-button",
+            },
+            preConfirm: () => {
+                const questionCount = document.getElementById("swal-question-count").value;
+                const schoolName = document.getElementById("swal-school-name").value;
+                const totalMarks = document.getElementById("swal-total-marks").value;
+                const examDate = document.getElementById("swal-date").value;
+
+                if (!questionCount || isNaN(questionCount) || questionCount <= 0) {
+                    return Swal.showValidationMessage("Please enter a valid number of questions.");
+                }
+                if (!schoolName.trim()) {
+                    return Swal.showValidationMessage("Please enter a school name.");
+                }
+                if (!totalMarks || isNaN(totalMarks) || totalMarks <= 0) {
+                    return Swal.showValidationMessage("Please enter valid total marks.");
+                }
+                if (!examDate) {
+                    return Swal.showValidationMessage("Please select a date.");
+                }
+
+                return { questionCount, schoolName, totalMarks, examDate };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById("questionCount").value = result.value.questionCount;
+                document.getElementById("schoolName").value = result.value.schoolName;
+                document.getElementById("totalMarks").value = result.value.totalMarks;
+                document.getElementById("examDate").value = result.value.examDate;
+                document.getElementById("pdfForm").submit();
+            }
+        });
+    }
+
+
+</script>
+

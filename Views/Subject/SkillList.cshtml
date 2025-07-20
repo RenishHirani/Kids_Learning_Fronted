@@ -1,0 +1,92 @@
+﻿@model DataTable
+@using System.Data;
+@{
+    ViewData["Title"] = "Skills";
+    int subjectId = (int)ViewBag.SubjectID;
+    int gradeId = (int)ViewBag.GradeID;
+    int chapterId = (int)ViewBag.ChapterID;
+}
+
+<style>
+    /* Ensure all cards have the same size */
+    .skill-card {
+        min-height: 350px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-radius: 20px;
+    }
+
+    /* Dark-themed button */
+    .explore-btn {
+        background-color: #343a40; /* Dark gray/black */
+        color: white;
+        font-size: 18px;
+        border-radius: 20px;
+        transition: background 0.3s ease;
+    }
+
+        .explore-btn:hover {
+            background-color: #212529; /* Even darker on hover */
+            color: #f8f9fa;
+        }
+</style>
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary font-weight-bold">
+            <i class="fas fa-lightbulb"></i> Fun Math Skills!
+        </h2>
+        <a asp-controller="Subject" asp-action="ChapterList" asp-route-subjectId="@subjectId" asp-route-gradeId="@gradeId"
+           class="btn btn-secondary btn-lg rounded-pill">
+            <i class="fas fa-arrow-left"></i> Back to Chapters
+        </a>
+    </div>
+
+    @if (Model != null && Model.Rows.Count > 0)
+    {
+        <div class="row">
+            @foreach (DataRow row in Model.Rows)
+            {
+                <div class="col-lg-4 mb-4">
+                    <div class="card border-0 bg-light shadow-sm pb-2">
+                        <div class="card-body text-center">
+                            <i class="fas fa-calculator fa-4x text-primary mb-3"></i>
+                            <h5 class="card-title font-weight-bold text-secondary" style="font-family: 'Comic Sans MS', cursive;">
+                                @row["SkillName"]
+                            </h5>
+                            <p class="text-dark font-weight-bold" style="font-size: 18px;">🧮 Sequence: @row["Sequence"]</p>
+                            <p class="text-dark" style="font-size: 16px;">@row["ShortDescription"]</p>
+                        </div>
+                        <button class="btn btn-outline-primary btn-lg px-4 mx-auto mb-4" onclick="navigateToSkill(@row["SkillID"])">
+                            <i class="fas fa-arrow-right"></i> Explore Skill
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center" style="font-size: 18px; background-color: #fff3cd; border-color: #ffecb5; color: #856404;">
+            <i class="fas fa-info-circle"></i> No skills available for this chapter.
+        </div>
+    }
+</div>
+
+
+<script>
+    function navigateToSkill(skillId) {
+        fetch(`/Subject/GetSkillRoute?skillId=${skillId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.controller && data.action) {
+                    // Construct URL and navigate
+                    window.location.href = `/${data.controller}/${data.action}?skillId=${skillId}`;
+                } else {
+                    alert("No route found for this skill.");
+                }
+            })
+            .catch(error => console.error("Error fetching skill route:", error));
+    }
+</script>

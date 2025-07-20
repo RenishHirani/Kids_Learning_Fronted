@@ -1,0 +1,280 @@
+﻿@model frontend.Models.DigitModel
+@{
+    var skillId = TempData["SkillId"];
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="~/asset/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/asset/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body {
+            background: linear-gradient(to right, #dfe9f3, #ffffff);
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+            margin-top: 50px;
+            border: 8px solid #007bff;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #007bff;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background-color: #0056b3;
+            }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+        .form-control {
+            font-size: 1rem;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .card {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Theme Swatch Styles */
+        .theme-options {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .theme-option {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+            .theme-option:hover {
+                transform: scale(1.1);
+                border-color: #000;
+            }
+
+            .theme-option input[type="radio"] {
+                display: none; /* Hide the default radio button */
+            }
+
+            .theme-option label {
+                display: block;
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                cursor: pointer;
+            }
+
+        /* Color Swatches */
+        #lightblue {
+            background-color: lightblue;
+        }
+
+        #lightpink {
+            background-color: lightpink;
+        }
+
+        #lightgreen {
+            background-color: lightgreen;
+        }
+
+        #lightorange {
+            background-color: orange;
+        }
+
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="theme-options">
+            <div class="theme-option" id="lightblue">
+                <input type="radio" id="lightblue-radio" name="theme" value="lightblue" onchange="changeTheme('lightblue')">
+                <label for="lightblue-radio"></label>
+            </div>
+            <div class="theme-option" id="lightpink">
+                <input type="radio" id="lightpink-radio" name="theme" value="lightpink" onchange="changeTheme('lightpink')">
+                <label for="lightpink-radio"></label>
+            </div>
+            <div class="theme-option" id="lightgreen">
+                <input type="radio" id="lightgreen-radio" name="theme" value="lightgreen" onchange="changeTheme('lightgreen')">
+                <label for="lightgreen-radio"></label>
+            </div>
+            <div class="theme-option" id="lightorange">
+                <input type="radio" id="lightorange-radio" name="theme" value="lightorange" onchange="changeTheme('lightorange')">
+                <label for="lightorange-radio"></label>
+            </div>
+        </div>
+        <form method="post" asp-action="GenerateNumber" asp-controller="Subtraction">
+            <input type="hidden" name="skillId" value="@skillId" />
+            <button type="submit" class="btn btn-primary">🔢 Generate New Numbers</button>
+        </form>
+        <div class="card">
+            <form method="post" asp-action="SubmitAnswer" asp-controller="Subtraction">
+                <input type="hidden" name="skillId" value="@skillId" />
+                @if (Model.Digit1 != null)
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Solve:</label>
+                        <p class="display-4">
+                            <input type="hidden" name="Digit1" value="@Model.Digit1" />
+                            @Model.Digit1
+                            @if (Model.Digit2 != null)
+                            {
+                                <input type="hidden" name="Digit2" value="@Model.Digit2" />
+                                <text> - @Model.Digit2</text>
+                            }
+                            @if (Model.Digit3 != null)
+                            {
+                                <input type="hidden" name="Digit3" value="@Model.Digit3" />
+                                <text> - @Model.Digit3</text>
+                            }
+                            @if (Model.Digit4 != null)
+                            {
+                                <input type="hidden" name="Digit4" value="@Model.Digit4" />
+                                <text> - @Model.Digit4</text>
+                            }
+                            = ?
+                        </p>
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <input type="text" id="Answer" name="Answer" class="form-control"
+                           placeholder="Type your answer! 🎯" inputmode="numeric" pattern="[0-9]*"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
+                </div>
+                @if (!string.IsNullOrEmpty(Model.ResultMessage))
+                {
+                    <div class="alert alert-@Model.ResultType mt-3" style="color: @Model.ResultType; font-weight: bold;margin-top: 10px;">
+                        @Model.ResultMessage
+                    </div>
+                }
+                <div class="d-flex justify-content-between">
+                    <button style="margin-right: 4px" type="submit" class="btn btn-primary">✅ Submit</button>
+                    <a asp-action="SubjectList" asp-controller="Subject" class="btn btn-secondary">⬅ Back</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Function to change the theme
+        function changeTheme(color) {
+            let body = document.body;
+            let container = document.querySelector('.container');
+            let buttons = document.querySelectorAll('.btn-primary');
+            let borders = document.querySelectorAll('.form-control, .container');
+            let downloadBtn = document.getElementById('downloadBtn'); // Floating Download Button
+            let textElements = document.querySelectorAll('p, label, .form-label, .display-4'); // Update text colors
+
+
+
+            switch (color) {
+                case 'lightblue':
+                    body.style.background = 'linear-gradient(to right, #dfe9f3, #ffffff)';
+                    container.style.borderColor = '#007bff';
+                    buttons.forEach(btn => btn.style.backgroundColor = '#007bff');
+                    borders.forEach(border => border.style.borderColor = '#007bff');
+                    downloadBtn.style.backgroundColor = '#007bff';
+                    textElements.forEach(el => el.style.color = '#003366'); // Dark Blue Text
+                    break;
+                case 'lightpink':
+                    body.style.background = 'linear-gradient(to right, #ffcccb, #ffffff)';
+                    container.style.borderColor = '#ff69b4';
+                    buttons.forEach(btn => btn.style.backgroundColor = '#ff69b4');
+                    borders.forEach(border => border.style.borderColor = '#ff69b4');
+                    downloadBtn.style.backgroundColor = '#ff69b4';
+                    textElements.forEach(el => el.style.color = '#b3005e'); // Dark Pink Text
+                    break;
+                case 'lightgreen':
+                    body.style.background = 'linear-gradient(to right, #90ee90, #ffffff)';
+                    container.style.borderColor = '#32cd32';
+                    buttons.forEach(btn => btn.style.backgroundColor = '#32cd32');
+                    borders.forEach(border => border.style.borderColor = '#32cd32');
+                    downloadBtn.style.backgroundColor = '#32cd32';
+                    textElements.forEach(el => el.style.color = '#006400'); // Dark Green Text
+                    break;
+                case 'lightorange':
+                    body.style.background = 'linear-gradient(to right, #ffd699, #ffffff)';
+                    container.style.borderColor = '#ff8c00';
+                    buttons.forEach(btn => btn.style.backgroundColor = '#ff8c00');
+                    borders.forEach(border => border.style.borderColor = '#ff8c00');
+                    downloadBtn.style.backgroundColor = '#ff8c00';
+                    textElements.forEach(el => el.style.color = '#993d00'); // Dark Orange Text
+                    break;
+            }
+
+            // Save the selected theme to local storage
+            localStorage.setItem('selectedTheme', color);
+        }
+
+        // Function to load the saved theme immediately
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('selectedTheme');
+            if (savedTheme) {
+                changeTheme(savedTheme);
+            }
+        }
+
+        // Load the theme as soon as the script runs (before the page fully loads)
+        loadTheme();
+
+        // Ensure the correct radio button is checked after the page loads
+        window.onload = function () {
+            const savedTheme = localStorage.getItem('selectedTheme');
+            if (savedTheme) {
+                document.getElementById(`${savedTheme}-radio`).checked = true;
+            }
+        };
+
+        
+    </script>
+</body>
+</html>
